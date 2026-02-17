@@ -1,44 +1,45 @@
-name: YouTube View Maker Bot
+name: YouTube Auto View Bot
 
 on:
-  workflow_dispatch: # Manual start karne ke liye
+  push:
+    branches:
+      - main  # Jab bhi aap code upload/save karoge, bot chal jayega
+  workflow_dispatch: # Manual option bhi rakha hai backup ke liye
   schedule:
-    - cron: '0 */6 * * *' # Har 6 ghante mein automatic chalega
+    - cron: '0 */3 * * *' # Har 3 ghante mein apne aap restart hoga
 
 jobs:
-  build:
+  run_bot:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        [span_0](start_span)uses: actions/checkout@v3[span_0](end_span)
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          [span_1](start_span)python-version: '3.9'[span_1](end_span)
 
-      - name: Install System Dependencies
+      - name: Install Dependencies
         run: |
           sudo apt update
           sudo apt install -y xvfb libxi6 libgconf-2-4 unzip curl wget
+          # Chrome install karna zaroori hai
+          wget -q -O google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          [span_2](start_span)sudo apt install -y ./google-chrome.deb[span_2](end_span)
 
-      - name: Run Installation Script
+      - name: Run Install Script
         run: |
           chmod +x install.sh
-          sudo ./install.sh
+          [span_3](start_span)sudo ./install.sh[span_3](end_span)
 
-      - name: Install Python Requirements
+      - name: Install Python Libraries
         run: |
-          pip install selenium-wire selenium==4.9.0 blinker==1.7.0
+          [span_4](start_span)pip install selenium-wire selenium==4.9.0 blinker==1.7.0[span_4](end_span)
 
-      - name: Run Bot with Virtual Display
-        env:
-          # Agar aapne script mein BOT_TOKEN use kiya hai toh yahan add karein
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }} 
+      - name: Start Bot Automatically
         run: |
-          # Xvfb virtual screen start karna zaruri hai
+          # Virtual screen setup taaki Chrome crash na ho
           Xvfb :99 -screen 0 1920x1080x24 &
           export DISPLAY=:99
-          python soulcrack.py
-
+          [span_5](start_span)python soulcrack.py[span_5](end_span)
