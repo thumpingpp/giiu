@@ -1,0 +1,44 @@
+name: YouTube View Maker Bot
+
+on:
+  workflow_dispatch: # Manual start karne ke liye
+  schedule:
+    - cron: '0 */6 * * *' # Har 6 ghante mein automatic chalega
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y xvfb libxi6 libgconf-2-4 unzip curl wget
+
+      - name: Run Installation Script
+        run: |
+          chmod +x install.sh
+          sudo ./install.sh
+
+      - name: Install Python Requirements
+        run: |
+          pip install selenium-wire selenium==4.9.0 blinker==1.7.0
+
+      - name: Run Bot with Virtual Display
+        env:
+          # Agar aapne script mein BOT_TOKEN use kiya hai toh yahan add karein
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }} 
+        run: |
+          # Xvfb virtual screen start karna zaruri hai
+          Xvfb :99 -screen 0 1920x1080x24 &
+          export DISPLAY=:99
+          python soulcrack.py
+
