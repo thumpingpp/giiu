@@ -23,7 +23,6 @@ jobs:
       - name: Install System Deps
         run: |
           sudo apt update
-          # libasound2 ko remove karke universal libraries add ki hain
           sudo apt install -y xvfb unzip curl wget libgbm1 libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2
           wget -q -O google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
           sudo apt install -y ./google-chrome.deb
@@ -35,10 +34,10 @@ jobs:
 
       - name: Install Python Libraries
         run: |
-          [span_2](start_span)pip install selenium-wire selenium==4.9.0 blinker==1.7.0[span_2](end_span)
+          pip install selenium-wire selenium==4.9.0 blinker==1.7.0
 
       - name: Start Bot
         run: |
           Xvfb :99 -screen 0 1920x1080x24 &
           export DISPLAY=:99
-          [span_3](start_span)python soulcrack.py[span_3](end_span)
+          python soulcrack.py
