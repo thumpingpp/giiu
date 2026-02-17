@@ -23,7 +23,8 @@ jobs:
       - name: Install System Deps
         run: |
           sudo apt update
-          sudo apt install -y xvfb libxi6 libgconf-2-4 unzip curl wget
+          # Libgconf ko hata kar modern dependencies add ki hain
+          sudo apt install -y xvfb unzip curl wget libgbm1 libasound2
           wget -q -O google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
           sudo apt install -y ./google-chrome.deb
 
